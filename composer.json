@@ -1,0 +1,41 @@
+{
+    "name": "larvata/ezpay",
+    "description": ":package_description",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Author Name",
+            "email": "author@email.com",
+            "homepage": "http://author.com"
+        }
+    ],
+    "homepage": "https://github.com/larvata/ezpay",
+    "keywords": ["Laravel", "Ezpay"],
+    "require": {
+        "illuminate/support": "~8"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~9.0",
+        "orchestra/testbench": "~7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Larvata\\Ezpay\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Larvata\\Ezpay\\Tests\\": "tests"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Larvata\\Ezpay\\EzpayServiceProvider"
+            ],
+            "aliases": {
+                "Ezpay": "Larvata\\Ezpay\\Facades\\Ezpay"
+            }
+        }
+    }
+}
