@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'larvata/ezpay',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => NULL,
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
+        'reference' => '5b55be729f17d559129b9dee44f286899e3bb554',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -347,9 +347,9 @@
             'dev_requirement' => false,
         ),
         'larvata/ezpay' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => NULL,
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => '5b55be729f17d559129b9dee44f286899e3bb554',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
