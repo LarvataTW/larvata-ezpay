@@ -130,18 +130,11 @@ class CreateInvoiceService
         logger()->info('[發票][Ezpay] 發送建立訂單（orderNumber: ' . $this->orderNumber . '）的發票請求 payload：' . json_encode($this->payload));
         if($this->responseBodyJson['Status'] === 'SUCCESS') {
             $result = json_decode($this->responseBodyJson['Result'], TRUE);
-            $invoiceTransNo = $result['InvoiceTransNo']; // 電子發票開立序號
-            $invoiceNumber = $result['InvoiceNumber']; // 發票號碼
-            $invoiceCreatedAt = $result['CreateTime']; // 發票開立時間，例：2014-09-25 12:12:12
 
             $this->result = [
                 'success' => true,
                 'message' => '發送建立發票請求成功',
-                'data' => [
-                    "invoice_number" => $invoiceNumber,
-                    "invoice_trans_no" => $invoiceTransNo,
-                    "invoice_created_at" => Carbon::create($invoiceCreatedAt)
-                ]
+                'data' => $result
             ];
 
             logger()->info("[發票][Ezpay] 發送建立發票請求成功（orderNumber: " . $this->orderNumber . "）：" . $this->responseBodyJson['Result']);
