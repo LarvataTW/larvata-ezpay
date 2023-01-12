@@ -4,6 +4,7 @@ namespace Larvata\Ezpay;
 
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -26,12 +27,12 @@ class CreateInvoiceService
     private string $taxType;
     private string $email;
     private string $itemName;
-    private string $itemCount;
-    private string $itemUnit;
-    private string $itemPrice;
-    private string $uniformNumber;
-    private string $companyTitle;
-    private string $carrier;
+    private $itemCount;
+    private $itemUnit;
+    private $itemPrice;
+    private $uniformNumber;
+    private $companyTitle;
+    private $carrier;
 
     private int $amt; // 未稅金額
     private int $vat; // 稅額
@@ -82,13 +83,14 @@ class CreateInvoiceService
         try {
             $this->initResult();
             $this->createInvoice();
+        } catch(ConnectionException $e) {
+            logger()->error('[發票][Ezpay] 開立發票作業失敗（orderNumber = ' . $this->orderNumber . '）：' . '呼叫 Ezpay API 發生錯誤：' . $e->getMessage());
+
+            $this->result['message'] = "呼叫 Ezpay API 發生錯誤：" . $e->getMessage();
         } catch (Exception $e) {
             logger()->error('[發票][Ezpay] 開立發票作業失敗（orderNumber = ' . $this->orderNumber . '）：' . $e->getMessage());
 
-            $this->result = [
-                'success' => false,
-                'message' => $e->getMessage()
-            ];
+            $this->result['message'] = $e->getMessage();
         } finally {
             return $this->result;
         }
@@ -201,32 +203,32 @@ class CreateInvoiceService
     private function makePayload()
     {
         $postData = http_build_query([
-            "RespondType" => 'JSON',
-            "Version" => '1.5',
-            "TimeStamp" => time(),
-            "MerchantOrderNo" => $this->orderNumber ?? '',
-            "Status" => "1",
-            "Category" => isset($this->uniformNumber) ? "B2B" : "B2C",
-            "BuyerName" => $this->companyTitle ?? '',
-            "BuyerUBN" => $this->uniformNumber ?? '',
-            "BuyerEmail" => $this->email ?? '',
-            "CarrierType" => $this->carrierType(),
-            "CarrierNum" => $this->carrier(),
-            "PrintFlag" => $this->printFlag(),
-            "TaxType" => '1',
-            "TaxRate" => $this->taxRate,
-            "Amt" => $this->amt,
-            "TaxAmt" => $this->vat,
-            "TotalAmt" => $this->amtIncludingVat,
-            "ItemName" => $this->itemName,
-            "ItemCount" => $this->itemCount,
-            "ItemUnit" => $this->itemUnit,
-            "ItemPrice" => $this->itemPrice,
-            "ItemAmt" => $this->itemAmt()
-        ]);
+                                         "RespondType" => 'JSON',
+                                         "Version" => '1.5',
+                                         "TimeStamp" => time(),
+                                         "MerchantOrderNo" => $this->orderNumber ?? '',
+                                         "Status" => "1",
+                                         "Category" => isset($this->uniformNumber) ? "B2B" : "B2C",
+                                         "BuyerName" => $this->companyTitle ?? '',
+                                         "BuyerUBN" => $this->uniformNumber ?? '',
+                                         "BuyerEmail" => $this->email ?? '',
+                                         "CarrierType" => $this->carrierType(),
+                                         "CarrierNum" => $this->carrier(),
+                                         "PrintFlag" => $this->printFlag(),
+                                         "TaxType" => '1',
+                                         "TaxRate" => $this->taxRate,
+                                         "Amt" => $this->amt,
+                                         "TaxAmt" => $this->vat,
+                                         "TotalAmt" => $this->amtIncludingVat,
+                                         "ItemName" => $this->itemName,
+                                         "ItemCount" => $this->itemCount,
+                                         "ItemUnit" => $this->itemUnit,
+                                         "ItemPrice" => $this->itemPrice,
+                                         "ItemAmt" => $this->itemAmt()
+                                     ]);
 
         $postData = trim(bin2hex(openssl_encrypt($this->addPadding($postData),
-                                                      'AES-256-CBC', $this->key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $this->iv)));
+                                                 'AES-256-CBC', $this->key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $this->iv)));
         $this->payload = [
             "MerchantID_" => $this->merchantId,
             "PostData_" => $postData
@@ -260,16 +262,18 @@ class CreateInvoiceService
     // 計算總和
     private function amt()
     {
+        $amt = 0;
         if(str_contains($this->itemPrice, "|")) {
             $itemPrices = explode("|", $this->itemPrice);
             $itemCounts = explode("|", $this->itemCount);
-            $amt = 0;
             foreach ($itemPrices as $index => $itemPrice) {
                 $amt += $itemPrice * $itemCounts[$index];
             }
         } else {
-            return $this->itemPrice * $this->itemCount;
+            $amt = $this->itemPrice * $this->itemCount;
         }
+
+        return $amt;
     }
 
     // 計算相關金額：未稅金額、稅額、含稅金額
@@ -277,7 +281,7 @@ class CreateInvoiceService
     {
         $total = $this->amt(); // 小計
         if ($this->taxRate !== 0) { // 是否需要計算稅額
-            if ($this->taxType === 'excluded') { // 外加稅
+            if ($this->taxType === 'excludedTax') { // 外加稅
                 $this->amt = $total;
                 $this->vat = ceil($total * $this->taxRate * 0.01);
                 $this->amtIncludingVat = $total + $this->vat;
