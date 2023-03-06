@@ -97,7 +97,7 @@ class SearchInvoiceService
                 "Version" => '1.3',
                 "TimeStamp" => time(),
                 "MerchantOrderNo" => $this->invoiceNumber,
-                "TotalAmt" => $this->invalidReason,
+                "TotalAmt" => $this->totalAmt,
                 "InvoiceNumber" => $this->invoiceNumber,
                 "RandomNum" => $this->randomNum
             ]
