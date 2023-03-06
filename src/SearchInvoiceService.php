@@ -34,7 +34,7 @@ class SearchInvoiceService
      * @param string $invoiceNumber 發票號碼
      * @param string $randomNum 發票防偽隨機碼
      */
-    public function __construct($orderNumber = '', $totalAmt = 0, $invoiceNumber = '', $randomNum = null)
+    public function __construct($orderNumber = '', $totalAmt = 0, $invoiceNumber = '', $randomNum = '0000')
     {
         $this->orderNumber = $orderNumber;
         $this->totalAmt = $totalAmt;
@@ -99,7 +99,7 @@ class SearchInvoiceService
                 "MerchantOrderNo" => $this->invoiceNumber,
                 "TotalAmt" => $this->invalidReason,
                 "InvoiceNumber" => $this->invoiceNumber,
-                "RandomNum" => $this->randomNum ?? rand(1000, 9999)
+                "RandomNum" => $this->randomNum
             ]
         );
 
