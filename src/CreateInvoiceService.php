@@ -209,7 +209,7 @@ class CreateInvoiceService
                                          "MerchantOrderNo" => $this->orderNumber ?? '',
                                          "Status" => "1",
                                          "Category" => isset($this->uniformNumber) ? "B2B" : "B2C",
-                                         "BuyerName" => $this->companyTitle ?? '',
+                                         "BuyerName" => $this->companyTitle ?? $this->buyerName ?? '',
                                          "BuyerUBN" => $this->uniformNumber ?? '',
                                          "BuyerEmail" => $this->email ?? '',
                                          "CarrierType" => $this->carrierType(),
